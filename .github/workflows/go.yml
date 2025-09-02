@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows]
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p dist
+          if [ "$GOOS" = "windows" ]; then
+            go build -ldflags="-s -w" -o dist/${GITHUB_REPOSITORY##*/}_${GOOS}_${GOARCH}.exe
+          else
+            go build -ldflags="-s -w" -o dist/${GITHUB_REPOSITORY##*/}_${GOOS}_${GOARCH}
+          fi
+
+      - name: Copy set.ini
+        run: cp set.ini dist/  # 将 set.ini 复制到 dist 目录
+
+      - name: Archive
+        run: |
+          cd dist
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            zip ${GITHUB_REPOSITORY##*/}_${{ matrix.goos }}_${{ matrix.goarch }}.zip ${GITHUB_REPOSITORY##*/}_${{ matrix.goos }}_${{ matrix.goarch }}.exe set.ini
+          else
+            tar -czf ${GITHUB_REPOSITORY##*/}_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz ${GITHUB_REPOSITORY##*/}_${{ matrix.goos }}_${{ matrix.goarch }} set.ini
+          fi
+
+      - name: List dist directory
+        run: ls -l dist
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: '**/*'
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

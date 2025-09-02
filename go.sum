@@ -1,0 +1,4 @@
+github.com/aWildProgrammer/fconf v0.0.0-20180508142436-83e728b760bc h1:5nLgwqRwGn26c6I9JbT3WBYXCQaShAii/+ovY98HuF4=
+github.com/aWildProgrammer/fconf v0.0.0-20180508142436-83e728b760bc/go.mod h1:f4uVxnsY8jUNfq3f9l8iybu2BtMawtk/eTK6clNurO0=
+github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
+github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
